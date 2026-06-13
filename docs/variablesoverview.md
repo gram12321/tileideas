@@ -1,27 +1,24 @@
 # Variables Overview
 
 ## Main Game Flow
-1. Start a game.
-2. Create the first `City`.
-3. Initialize the city state.
 4. Advance a turn or tick.
-5. Update population, production, and influence.
-6. Expand city control to nearby tiles.
-7. Claim tiles inside city area.
+5. Update city population, production, and influence.
+6. Recalculate tile influence from nearby cities.
+7. Resolve tile ownership.
 8. Apply tile effects.
 9. Repeat.
 
 ```mermaid
-flowchart TD
-  A[Start game] --> B[Create City]
-  B --> C[Initialize city state]
-  C --> D[Advance turn or tick]
-  D --> E[Update population]
-  D --> F[Update production]
-  D --> G[Update influence]
-  G --> H[Claim nearby tiles]
-  H --> I[Apply tile effects]
-  I --> D
+flowchart TD  B --> C[Create map tiles]
+  C --> D[Initialize city state]
+  D --> E[Advance turn or tick]
+  E --> F[Update population]
+  E --> G[Update production]
+  E --> H[Update influence]
+  H --> I[Recalculate tile influence]
+  I --> J[Resolve tile ownership]
+  J --> K[Apply tile effects]
+  K --> E
 ```
 
 ## Core Variables
@@ -34,6 +31,8 @@ flowchart TD
 | `influence` | Defines how far the city reaches. |
 | `claimed_tiles` | Tiles currently inside city area. |
 | `tile_state` | Ownership and use state for each tile. |
+| `terrain` | Base tile type. |
+| `influenceByCity` | Influence values from each city on a tile. |
 | `turn_count` | Tracks progression through time. |
 
 ## Major Mechanics
@@ -46,6 +45,17 @@ flowchart TD
   B --> C[City area grows]
   C --> D[claimed_tiles updates]
   D --> E[City gains more options]
+```
+
+### Tile Ownership
+
+```mermaid
+flowchart TD
+  A[City influence changes] --> B[Tile influence map updates]
+  B --> C[Compare influence totals]
+  C --> D[Highest influence wins]
+  D --> E[Tile owner updates]
+  E --> F[City tile lists refresh]
 ```
 
 ### Production Loop
