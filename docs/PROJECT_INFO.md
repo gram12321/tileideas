@@ -6,6 +6,17 @@ Status: Early prototype
 
 This file maps current ownership and likely growth paths. Planned paths are guidance, not requirements.
 
+## Document Purpose
+
+Use this file for:
+
+- repo structure
+- code ownership
+- likely module split as the project grows
+- doc map
+
+Mechanic definitions belong in the design docs, not here.
+
 ## Current Stack
 
 - React 19
@@ -43,6 +54,14 @@ There is currently no database, backend, persistence layer, or automated test se
 | Domain vocabulary | `docs/CONTEXT.md` |
 | Variable relationships | `docs/variablesoverview.md` |
 
+## Likely Growth Paths
+
+Given the current design direction, ownership is likely to grow toward:
+
+- `src/tile.ts` or a successor tile-domain module owning territorial attributes and local population rules
+- `src/city.ts` or a successor city-domain module owning aggregation, city-wide systems, and conversion rules
+- `src/game.ts` coordinating turn order between local tile updates, ownership resolution, and city aggregation
+
 ## Architecture Direction
 
 Keep the current modules small while the domain is still forming. When a system becomes large enough to justify separation:
@@ -75,5 +94,6 @@ Do not create these folders only to satisfy the planned layout. Add them when re
 | Variable flow and dependencies | `docs/variablesoverview.md` |
 | City design | `docs/city.md` |
 | Tile design | `docs/tiles.md` |
+| Live brainstorm trail | `docs/brainstorm-city-growth-2026-06-13.md` |
 | Implementation orientation | `docs/AIdocs/AIDescriptions_coregame.md` |
 | Change history | `docs/versionlog.md` |

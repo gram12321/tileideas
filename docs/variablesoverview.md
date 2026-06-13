@@ -4,6 +4,17 @@ Last updated: 2026-06-13
 
 This is the canonical relationship map for game variables and includes the reusable dependency guidance retained from the imported docs.
 
+## Document Purpose
+
+Use this file for:
+
+- stored versus derived decisions
+- dependency direction between systems
+- turn/update flow
+- relationship diagrams across city, tile, and game state
+
+Do not use this file as the main place for vocabulary definitions or detailed per-domain mechanic writeups.
+
 ## Current Game Flow
 
 ```mermaid
@@ -24,8 +35,17 @@ flowchart TD
 | Group | Stored values | Derived or updated values |
 |---|---|---|
 | Game | `turn`, `cities`, `tiles` | Next `GameState` after an action or turn |
-| City | `name`, `size` | Future growth, output, and influence values |
+| City | `name`, `size` | Current manually changed size; future model replaces this with derived size and population |
 | Tile | `id`, `terrain`, `influenceByCity` | `owner` |
+
+## Planned Variable Groups
+
+These are not implemented yet, but they are now part of the active design direction.
+
+| Group | Planned stored values | Planned derived or updated values |
+|---|---|---|
+| City | stable `id`, display `name`, city-wide improvements or institutions, optional aggregate caches | size, total population, territorial capacity, realized outputs, city-wide modifiers |
+| Tile | territorial attributes, local population, later local improvements or conditions | local growth changes, local realized effects, contribution to city totals |
 
 ## Current Relationships
 
@@ -37,8 +57,12 @@ flowchart TD
 | `GameState.tiles` | `advanceTurn()` resolves every tile | Updated tiles | Implemented |
 | `GameState.turn` | `advanceTurn()` adds `1` | Updated turn | Implemented |
 | City state + tile distance | Influence generation rule | Tile influence values | Planned |
-| Owned tiles + terrain | Tile effect rule | City output or options | Planned |
-| Population + city state | Growth/production rules | Updated city state | Planned |
+| Tiles owned by city id | Count controlled tiles | City size | Planned |
+| Controlled tiles | Aggregate tile attributes and population | City territorial totals | Planned |
+| Tile territorial attributes + city systems | Conversion rules | Realized city outputs | Planned |
+| Tile population + local conditions | Local population change rules | Updated tile population | Planned |
+| City membership + city-wide improvements | Shared modifiers on controlled tiles | Adjusted tile and city growth/output | Planned |
+| Population + territory + city systems | Growth and development rules | Updated city state | Planned |
 
 ## Relationship Invariants
 
@@ -68,9 +92,61 @@ Current ownership invariants:
 - Ownership is derived from influence.
 - A tile with no positive influence has no owner.
 - The current code does not maintain a separate city-owned tile list.
-- Before multiple cities become normal gameplay, define tie behavior and replace city-name identity with stable city ids.
+- Tie behavior remains unresolved.
+- The planned model replaces city-name identity with stable city ids.
 
-## Planned City Expansion
+Planned ownership decisions:
+
+- each city stores a stable id
+- tile `owner` references a stable city id or `null`
+- `influenceByCity` is keyed by stable city id
+- controlled tiles are derived from tile ownership rather than stored on the city
+- the starter tile begins owned by the starter city so every created city has at least one tile
+
+## Planned City Aggregation
+
+This diagram describes the intended direction, not current implementation:
+
+```mermaid
+flowchart LR
+  A[Tile territorial attributes]
+  B[Tile local population]
+  C[City control and membership]
+  D[Aggregate city totals]
+  E[City-wide improvements or institutions]
+  F[Realized city capacities and outputs]
+
+  A --> D
+  B --> D
+  C --> D
+  D --> F
+  E --> F
+  E --> B
+```
+
+This section owns the cross-system relationship, not the detailed definition of `City` or `Tile`.
+
+Derived city totals include:
+
+- `size`: number of controlled tiles
+- `population`: sum of controlled tiles' `localPopulation`
+- territorial totals: sums of each controlled tile attribute
+
+## Minimum Planned Simulation Slice
+
+The first implementation should prove the agreed model without designing the full economy:
+
+1. Create a starter city with a stable id and one owned starter tile.
+2. Store `arableLand`, `mountainArea`, `coastline`, and `localPopulation` on tiles.
+3. Derive city size, city population, and territorial totals from ownership.
+4. Add one city-wide hospital institution.
+5. Apply a small base population growth rate to every tile each turn.
+6. Apply the hospital's population-growth modifier to every tile owned by that city.
+7. Resolve ownership after population updates, so newly claimed tiles receive city-wide effects starting on the following turn.
+
+The exact growth rate and hospital modifier are temporary tuning constants for proving the relationship. The richer birth, death, food, migration, infrastructure, and technology simulation remains intentionally unresolved.
+
+## Planned Influence Expansion
 
 This diagram describes the intended direction, not current implementation:
 
@@ -79,7 +155,7 @@ flowchart LR
   A[City state] --> B[Generate influence]
   B --> C[Apply influence to nearby tiles]
   C --> D[Resolve ownership]
-  D --> E[Apply owned tile effects]
+  D --> E[Aggregate territory and update city state]
   E --> A
 ```
 
@@ -87,13 +163,14 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-  A[Advance turn] --> B[Update city state]
-  B --> C[Update production and population]
-  C --> D[Generate tile influence]
-  D --> E[Resolve tile ownership]
-  E --> F[Apply tile effects]
-  F --> G[Record results]
-  G --> A
+  A[Advance turn] --> B[Update local tile population and conditions]
+  B --> C[Generate tile influence]
+  C --> D[Resolve tile ownership]
+  D --> E[Aggregate controlled tiles into city totals]
+  E --> F[Apply city-wide improvements and conversion rules]
+  F --> G[Update city-level outputs and development]
+  G --> H[Record results]
+  H --> A
 ```
 
 Each planned phase must be documented as implemented only after its code exists.
@@ -103,8 +180,10 @@ Each planned phase must be documented as implemented only after its code exists.
 | Prefer storing | Prefer deriving |
 |---|---|
 | Stable identity such as tile id | Tile owner from influence, if performance allows |
+| Local tile population and territorial attributes | City size, population, and territorial totals from controlled tiles |
 | Player decisions that cannot be reconstructed | Totals produced entirely from other current values |
 | State needed to resume a game | UI labels and presentation values |
+| City-wide improvements or institutions | Realized outputs from territory plus modifiers |
 | Historical snapshots intentionally frozen in time | Temporary comparisons and previews |
 
 If a derived value is also stored for performance, document when and how it is refreshed.
@@ -125,4 +204,5 @@ When adding a mechanic or variable group:
 - [Project context](CONTEXT.md)
 - [City design](city.md)
 - [Tile design](tiles.md)
+- [City growth and territory brainstorm](brainstorm-city-growth-2026-06-13.md)
 - [Project information](PROJECT_INFO.md)

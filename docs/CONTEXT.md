@@ -17,7 +17,17 @@ The current implementation is intentionally small:
 - tile ownership resolved from the highest influence
 - a React UI shell for inspecting and changing the demo state
 
-Production, population, resources, map generation, persistence, combat, diplomacy, and AI opponents are not implemented yet.
+Population, territorial attributes, production, map generation, persistence, combat, diplomacy, and AI opponents are not implemented yet.
+
+## Document Purpose
+
+Use this file for:
+
+- canonical vocabulary
+- short current-rule summaries
+- naming choices that other docs should reuse
+
+Do not use this file for full mechanic design or relationship flowcharts. Those belong in `docs/city.md`, `docs/tiles.md`, `docs/variablesoverview.md`, or the brainstorm note.
 
 ## Domain Vocabulary
 
@@ -25,16 +35,22 @@ Production, population, resources, map generation, persistence, combat, diplomac
 |---|---|
 | `GameState` | Top-level runtime state containing `turn`, `cities`, and `tiles`. |
 | `turn` | Integer tracking how many turns have been advanced. |
-| `City` | Main high-level game object. Currently contains `name` and `size`. |
+| `Civilization` or `Civ` | Planned top-level political entity controlled by the player. A civilization can contain multiple cities. |
+| `City` | Main high-level game object. In planned design it is a named grouping of controlled tiles. |
 | `name` | Current city display name and temporary identity key. |
-| `size` | Current city growth value. It is a placeholder for a richer city model. |
-| `Tile` | A map cell containing identity, terrain, ownership, and influence values. |
+| `size` | Currently a stored growth placeholder. In planned design, city size is the derived number of controlled tiles. |
+| `Tile` | A map cell containing identity, terrain, ownership, and influence values. In planned design it is also the main holder of territorial attributes and local population. |
 | `id` | Stable tile identifier. |
 | `Terrain` | Current terrain union: `plains`, `forest`, `hill`, or `water`. |
 | `owner` | Name of the city currently controlling a tile, or `null`. |
 | `influenceByCity` | Record of city name to influence value for one tile. |
 | City influence | A city's control strength on a tile. |
 | Tile ownership | The result of comparing all city influence values on a tile. |
+| Territorial attributes | Planned tile-level values describing underlying land qualities such as arable land, habitation area, mountain area, coastline, and similar regional properties. |
+| Local population | Planned tile-level integer count of people using real-scale values rather than abstract population levels. |
+| City population | Planned derived sum of local population across tiles controlled by one city. |
+| Territorial potential | The summed capacity a city gains from controlled tiles before city systems convert it into realized outputs. |
+| City-wide improvements or institutions | Planned city-level systems such as hospitals, libraries, or other structures that modify all tiles belonging to that city. |
 
 ## Current Rules
 
@@ -46,11 +62,23 @@ Production, population, resources, map generation, persistence, combat, diplomac
 - `advanceTurn()` increments the turn and resolves ownership for every tile.
 - `runTurns()` repeatedly applies `advanceTurn()`.
 
+## Design Direction Terms
+
+These are active planned concepts, not implemented rules:
+
+- tiles provide territorial attributes, not direct fixed yields
+- local population exists at tile level and uses whole real-scale numbers of people
+- city size is the derived count of controlled tiles
+- city population is aggregated from controlled tiles
+- city-wide improvements modify the conditions across controlled tiles
+
 ## Naming Policy
 
 - Use `City`, `Tile`, `Terrain`, `GameState`, and `influenceByCity` consistently.
 - Keep implemented terms separate from proposed mechanics.
 - Mark future concepts as planned until code exists.
+- Prefer `territorial attributes` over `resources` when referring to underlying land qualities.
+- Prefer `local population` for tile-level people and `city population` for the aggregate total.
 - Avoid compatibility aliases for discarded imported-project concepts.
 - Introduce stable city ids before city renaming or multi-city gameplay makes names unsafe as identity keys.
 
@@ -59,5 +87,6 @@ Production, population, resources, map generation, persistence, combat, diplomac
 - [City design](city.md)
 - [Tile design](tiles.md)
 - [Variables overview](variablesoverview.md)
+- [City growth and territory brainstorm](brainstorm-city-growth-2026-06-13.md)
 - [Project information](PROJECT_INFO.md)
 - [Implementation orientation](AIdocs/AIDescriptions_coregame.md)
