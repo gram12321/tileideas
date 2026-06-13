@@ -1,54 +1,47 @@
 # Tiles
 
 ## Purpose
-Tiles represent map cells that can hold terrain and city influence.
 
-## Tile Type
-A tile should have its own type.
+Tiles are map cells that hold terrain, influence, and control state.
 
-This lets us store:
-- terrain
-- current owner
-- influence from several cities
-- optional yield data
+## Current Model
 
-## Recommended Fields
+Defined in `src/tile.ts`:
 
 | Field | Type | Role |
-| --- | --- | --- |
-| `terrain` | `string` or enum | Base land type. |
-| `owner` | `City` id or `null` | Winning city for the tile. |
-| `influenceByCity` | map/dictionary | Influence values per city. |
-| `yield` | object or derived value | Tile output. |
+|---|---|---|
+| `id` | `string` | Stable tile identity. |
+| `terrain` | `Terrain` | One of `plains`, `forest`, `hill`, or `water`. |
+| `owner` | `string \| null` | Current controlling city name. |
+| `influenceByCity` | `Record<string, number>` | Influence values keyed by city name. |
 
-## Data Decision: Stored vs Calculated
+Current functions:
 
-Some tile values should be stored, and some can be calculated.
+- `createTile(id, terrain)` creates an unclaimed tile.
+- `setTileInfluence(tile, cityName, influence)` updates one influence value.
+- `resolveTileOwner(tile)` assigns the highest positive influence as owner.
 
-### Store
-- `terrain`
-- `owner`
-- `influenceByCity`
+## Stored Versus Derived
 
-### Calculate
-- `yield`, if it is fully determined by terrain and city state
-- derived bonuses that depend on city size or other rules
+| Value | Current treatment | Direction |
+|---|---|---|
+| `id` | Stored | Keep stored. |
+| `terrain` | Stored | Keep stored. |
+| `influenceByCity` | Stored | Keep stored unless influence becomes cheaply reproducible. |
+| `owner` | Stored but recalculated on turn advance | May remain cached or become derived later. |
+| Tile yields and bonuses | Not implemented | Prefer deriving from terrain and city state where practical. |
 
-This keeps the tile data small while still allowing flexible gameplay.
+## Current Constraints
 
-## Tile Control Rule
-If several cities influence the same tile:
-1. Sum influence per civ or city group.
-2. Compare totals on that tile.
-3. The highest total wins control.
-4. Recompute when city influence changes.
+- Influence uses city names instead of stable ids.
+- Tie behavior is implicit: the first highest entry encountered wins.
+- There is no map position, adjacency, distance, yield, or city-area model yet.
+- Ownership changes do not update a city-owned tile list because no such list exists.
 
-## Suggested Shape
-Keep tile ownership separate from city ownership.
+## Design Rules
 
-That means:
-- each tile knows who controls it
-- each city knows which tiles it currently controls
-- influence maps decide when the control should switch
-
-This is the clearest way to support Civ-like tile switching without locking the model too early.
+- Keep influence and ownership rules separate from UI.
+- Define tie behavior before competitive multi-city control is implemented.
+- Add map coordinates and adjacency only when map mechanics require them.
+- If ownership is stored in both city and tile state later, update both atomically.
+- Document any tile effect as a clear input into city state or turn resolution.

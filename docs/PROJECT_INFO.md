@@ -1,107 +1,79 @@
 # Project Information
 
-Status update (2026-05-31): Early implementation is live. The repo now has a minimal React/Vite runtime and a baseline game-loop slice, while broader systems in this document remain planned unless marked otherwise.
+Last updated: 2026-06-13
 
-Last updated: 2026-05-31
-Status: **Bootstrap** — documentation and agent skills only. React/Vite app not installed yet.
+Status: Early prototype
 
-Ownership map for **where code will live**. Behavior and shared-system patterns: `docs/AIdocs/AIDescriptions_coregame.md`. Domain terms: `docs/CONTEXT.md`. Variable flow (template): `docs/VariableRelationshipMap.md`.
+This file maps current ownership and likely growth paths. Planned paths are guidance, not requirements.
 
-## Stack (planned)
+## Current Stack
 
-- React, Vite, TypeScript, Tailwind, ShadCN UI
-- Supabase (company-scoped persistence)
-- Vitest under `tests/`
-- Optional dev server helpers under `server/` (test runner, etc.)
+- React 19
+- TypeScript 5
+- Vite 8
+- Tailwind CSS 4
+- shadcn/Radix UI primitives
 
-## Repo layout today
+There is currently no database, backend, persistence layer, or automated test setup.
 
-| Path | Role |
-|---|---|
-| `readme.md` | Entry point, quick start, doc map |
-| `docs/` | Project docs (`CONTEXT.md`, `PROJECT_INFO.md`, `AIdocs/`, …) |
-| `.agents/skills/` | Local agent skills (`webgamedev-gram`, superpowers, best-practices) |
-| `src/` | App code (components, constants, services, types) |
-| `tests/` | Vitest coverage (currently baseline app loop test) |
-| `package.json` | App scripts and dependencies |
-| `migrations/` | SQL migrations (when schema exists) |
-
-The `src/` and `tests/` trees now exist with a minimal core loop baseline.
-
-## Currently implemented slice (minimum loop)
-
-| Area | Implemented files |
-|---|---|
-| Core constants | `src/lib/constants/gamestate.ts`, `src/lib/constants/recipeConst.ts`, `src/lib/constants/popConst.ts` |
-| Core services | `src/lib/services/core/gameinit.ts`, `src/lib/services/core/gametick.ts`, `src/lib/services/inventory.ts`, `src/lib/services/marketplace/marketplaceDemand.ts` |
-| Core types | `src/lib/types/gamestateTypes.ts`, `src/lib/types/inventoryTypes.ts`, `src/lib/types/buildingTypes.ts`, `src/lib/types/recipeTypes.ts` |
-| UI shell | `src/components/pages/GameShellPage.tsx`, `src/components/ui/city-marketplace-card.tsx`, `src/components/ui/native-select.tsx`, `src/components/ui/table.tsx` |
-| Verification | `tests/App.test.tsx`, `tests/marketplaceDemand.test.ts` |
-
-## Planned app layout (`src/`)
-
-Target structure from the shared workflow. Create folders as features land; names are conventions, not requirements on day one.
-
-```
-src/
-  main.tsx              # React mount
-  App.tsx               # Shell + page routing
-  index.css             # Tailwind / global styles
-  components/
-    layout/             # Header, activity panel, notifications
-    pages/              # Top-level game pages
-    ui/                 # ShadCN wrappers, modals, shared game UI
-    UItypes.ts          # Shared page/navigation props
-  hooks/                # Game state, loading, reactive updates
-  lib/
-    services/           # Business logic (by domain subfolder)
-      core/             # Game state, tick, starting conditions
-      <domain>/         # Production, sales, finance, …
-    database/           # Supabase CRUD/mappers only
-      core/
-    constants/          # Tunable gameplay numbers
-    types/              # Shared domain types
-    utils/              # Calculators, company helpers, UI helpers
-    features/           # Optional feature seams (e.g. loanLender)
-```
-
-**Rules (unchanged intent):**
-
-- Logic in `src/lib/services/`, not components
-- Persistence in `src/lib/database/`
-- Prefer barrels: `@/components/ui`, `@/hooks`, `@/lib/services`, `@/lib/constants`, `@/lib/utils`
-
-## Other planned roots
+## Current Layout
 
 | Path | Role |
 |---|---|
-| `tests/` | Vitest — mirror `src/lib/services/` domains |
-| `migrations/` | Schema SQL after Supabase setup |
-| `.env.local` | Supabase keys (gitignored) |
-| `server/` | Dev-only API (e.g. `/api/test-run`) when needed |
+| `README.md` | Short project entry point and doc map. |
+| `src/game.ts` | Top-level game state and turn transitions. |
+| `src/city.ts` | City type, creation, and growth. |
+| `src/tile.ts` | Tile type, influence updates, and ownership resolution. |
+| `src/index.ts` | Public exports for domain modules. |
+| `src/App.tsx` | Prototype UI shell and demo-state orchestration. |
+| `src/components/ui/` | Shared shadcn-based UI primitives. |
+| `src/lib/utils.ts` | Shared UI utility helpers. |
+| `docs/` | Design, architecture, vocabulary, and workflow docs. |
+| `.agent/skills/` | Imported local agent skills; use only when relevant and verify assumptions against this repo. |
 
-## Domain ownership (future)
+## Current Ownership
 
-When gameplay is defined, add rows here — one line per domain: **services → UI → database/constants**.
-
-Example row shape (do not treat as implemented):
-
-| Domain | Services | UI | Persistence / constants |
-|---|---|---|---|
-| Core tick | `src/lib/services/core/` | `App.tsx`, layout | `database/core/`, `constants/time*` |
-
-Until then, see the checklist in `AIDescriptions_coregame.md` § “Domain Systems — To Document When Implemented”.
-
-## Documentation map
-
-| Need | File |
+| Area | Current owner |
 |---|---|
-| Setup and overview | `readme.md` |
-| Domain glossary | `docs/CONTEXT.md` |
-| Stack and shared systems | `docs/AIdocs/AIDescriptions_coregame.md` |
-| Variable relationships | `docs/VariableRelationshipMap.md` |
-| New session handoff | `docs/AIdocs/AIpromt_newpromt.md` |
-| Agent rules | `docs/AIdocs/airules.mdc` |
-| Version history | `docs/versionlog.md` |
+| Game state and turns | `src/game.ts` |
+| City rules | `src/city.ts` |
+| Tile and influence rules | `src/tile.ts` |
+| UI composition and demo actions | `src/App.tsx` |
+| Shared UI primitives | `src/components/ui/` |
+| Domain vocabulary | `docs/CONTEXT.md` |
+| Variable relationships | `docs/variablesoverview.md` |
 
-Historical design under `docs/superpowers/` is from prior work — not current runtime unless code confirms it.
+## Architecture Direction
+
+Keep the current modules small while the domain is still forming. When a system becomes large enough to justify separation:
+
+| Future concern | Preferred location |
+|---|---|
+| Shared domain types | `src/lib/types/` |
+| Tunable gameplay values | `src/lib/constants/` |
+| Larger simulation systems | `src/lib/services/` |
+| Reusable hooks | `src/hooks/` |
+| Top-level pages | `src/components/pages/` |
+| Automated tests | `tests/` |
+
+Do not create these folders only to satisfy the planned layout. Add them when real code needs them.
+
+## Ownership Rules
+
+- Keep simulation rules outside React components.
+- Prefer pure functions that return updated state.
+- Keep UI-only state and interaction in React.
+- Centralize shared tunable values once they are reused or require balancing.
+- Add persistence only after its requirements and ownership model are intentionally chosen.
+
+## Documentation Map
+
+| Need | Document |
+|---|---|
+| Overview and setup | `README.md` |
+| Current vocabulary and rules | `docs/CONTEXT.md` |
+| Variable flow and dependencies | `docs/variablesoverview.md` |
+| City design | `docs/city.md` |
+| Tile design | `docs/tiles.md` |
+| Implementation orientation | `docs/AIdocs/AIDescriptions_coregame.md` |
+| Change history | `docs/versionlog.md` |

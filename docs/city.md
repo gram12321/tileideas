@@ -1,52 +1,45 @@
 # City
 
 ## Purpose
-The `City` is the main game object. It owns the core local state for growth, production, and tile control.
 
-## First City Type
-For now, a city should hold:
+The `City` is the main high-level game object. It is intended to become the local state container for growth, population, production, and tile influence.
 
-| Field | Type | Role |
-| --- | --- | --- |
-| `name` | `string` | Display and identification. |
-| `size` | `number` | City growth or tier. |
+## Current Model
 
-## Suggested Next Fields
-These are likely to be needed soon, but can wait until the mechanic needs them:
+Defined in `src/city.ts`:
 
 | Field | Type | Role |
-| --- | --- | --- |
-| `population` | `number` | Growth and output driver. |
-| `production` | `number` | Build progress. |
-| `influence` | `number` | Strength of tile control. |
-| `tilesControlled` | `Tile[]` or tile ids | Tiles currently owned by the city. |
+|---|---|---|
+| `name` | `string` | Display name and temporary identity key. |
+| `size` | `number` | Current growth value. |
 
-## City Responsibilities
-- Track city size and identity.
-- Generate influence over nearby tiles.
-- Keep ownership of tiles the city controls.
-- Feed local production and growth systems.
+Current functions:
 
-## Tile Ownership Recommendation
-Use a separate `Tile` type.
+- `createCity(name, size)` creates a city.
+- `growCity(city, amount)` returns a new city with increased size.
 
-Reason:
-- A tile needs its own terrain and control state.
-- A city needs a list of controlled tiles.
-- Several cities may compete over the same tile.
-- Tile ownership is easier to calculate if the tile stores influence from multiple cities.
+## Current Constraints
 
-## Recommended Relationship
-- `City` owns an array of controlled tile ids or references.
-- `Tile` stores competing influence values from each city.
-- The winner is the city with the highest total influence on that tile.
-- If ownership changes, update the city tile lists and the tile owner state.
+- City names are currently used as keys in tile influence maps.
+- Cities do not currently store controlled tile ids.
+- City size does not yet affect population, production, or influence.
+- Growth accepts any numeric amount; limits and validation are not defined yet.
 
-## Minimal Model
-Start with:
-- `City`
-- `Tile`
-- `tile influence map`
-- `tile owner`
+## Planned Responsibilities
 
-That gives us room for Civ-style tile switching without overbuilding the data model.
+Add these only as their mechanics are designed:
+
+| Concept | Intended role |
+|---|---|
+| Stable city id | Identity independent of display name. |
+| Population | Growth and output driver. |
+| Production | Build progress and city development. |
+| Influence generation | Determines control pressure on nearby tiles. |
+| Controlled tiles | Derived lookup or synchronized list of owned tiles. |
+
+## Design Rules
+
+- Keep city rules in domain code rather than React components.
+- Prefer stable ids before adding renaming or multiple cities.
+- Decide whether controlled tiles are derived or stored before adding them to `City`.
+- Avoid making `City` own detailed tile state; tiles remain separate objects.
