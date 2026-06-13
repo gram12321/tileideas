@@ -13,15 +13,13 @@ Defined in `src/tile.ts`:
 | Field | Type | Role |
 |---|---|---|
 | `id` | `string` | Stable tile identity. |
-| `terrain` | `Terrain` | One of `plains`, `forest`, `hill`, or `water`. |
-| `owner` | `string \| null` | Current controlling city name. |
-| `influenceByCity` | `Record<string, number>` | Influence values keyed by city name. |
+| `ownerCityId` | `string \| null` | Stable id of the controlling city. |
+| `localPopulation` | `number` | Non-negative integer count of people on the tile. |
+| `arableLand` | `number` | Current first territorial attribute. |
 
 Current functions:
 
-- `createTile(id, terrain)` creates an unclaimed tile.
-- `setTileInfluence(tile, cityName, influence)` updates one influence value.
-- `resolveTileOwner(tile)` assigns the highest positive influence as owner.
+- `createTile(id, ownerCityId, localPopulation, arableLand)` creates a tile and validates local population.
 
 ## Planned Tile Role
 
@@ -100,19 +98,16 @@ For this first slice, territorial attributes are abstract non-negative quantitie
 | Value | Current treatment | Direction |
 |---|---|---|
 | `id` | Stored | Keep stored. |
-| `terrain` | Stored | Keep stored. |
-| `influenceByCity` | Stored | Keep stored unless influence becomes cheaply reproducible. |
-| `owner` | Stored but recalculated on turn advance | May remain cached or become derived later. |
-| Territorial attributes | Not implemented | Planned as stored tile data. |
-| Tile population | Not implemented | Planned as stored real-scale local population data. |
-| City totals from tiles | Not implemented | Prefer deriving from controlled tiles. |
+| `ownerCityId` | Stored | Current direct city ownership. |
+| `arableLand` | Stored | First implemented territorial attribute. |
+| Tile population | Stored | Real-scale local integer population. |
+| City totals from tiles | Derived | Derived from controlled tiles. |
 | Realized outputs from territory | Not implemented | Prefer deriving from tile state plus city systems. |
 
 ## Current Constraints
 
-- Influence uses city names instead of stable ids.
-- Tie behavior is implicit: the first highest entry encountered wins.
-- There is no map position, adjacency, distance, territorial-attribute, population, or city-area model yet.
+- There is no influence, terrain, map position, adjacency, or distance model yet.
+- Only arable land is implemented from the planned territorial attribute schema.
 - Ownership changes do not update a city-owned tile list because no such list exists.
 
 ## Planned Relationship To Cities

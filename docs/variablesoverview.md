@@ -24,19 +24,17 @@ flowchart TD
   B --> D[GameState]
   C --> D
   D --> E[Player action]
-  E --> F[Grow city or change influence]
-  F --> G[Advance turn]
-  G --> H[Resolve tile ownership]
-  H --> D
+  E --> F[Advance turn]
+  F --> D
 ```
 
 ## Current Variable Groups
 
 | Group | Stored values | Derived or updated values |
 |---|---|---|
-| Game | `turn`, `cities`, `tiles` | Next `GameState` after an action or turn |
-| City | `name`, `size` | Current manually changed size; future model replaces this with derived size and population |
-| Tile | `id`, `terrain`, `influenceByCity` | `owner` |
+| Game | `turn`, `civilizations`, `cities`, `tiles` | Next `GameState` after a turn |
+| City | `id`, `civilizationId`, `name` | Size, population, and arable land totals |
+| Tile | `id`, `ownerCityId`, `localPopulation`, `arableLand` | Contribution to city totals |
 
 ## Planned Variable Groups
 
@@ -51,10 +49,8 @@ These are not implemented yet, but they are now part of the active design direct
 
 | Source | Relationship | Result | Status |
 |---|---|---|---|
-| `createGame(cityName)` | Creates baseline state | Turn `0`, one city, one tile | Implemented |
-| `City.size` + growth amount | `growCity()` adds amount | New `City.size` | Implemented |
-| `Tile.influenceByCity` | `resolveTileOwner()` compares influence | `Tile.owner` | Implemented |
-| `GameState.tiles` | `advanceTurn()` resolves every tile | Updated tiles | Implemented |
+| `createGame(cityName)` | Creates baseline state | Turn `0`, one civilization, one city, one owned tile | Implemented |
+| Tiles owned by city id | `getCityTotals()` aggregates values | City size, population, and arable land | Implemented |
 | `GameState.turn` | `advanceTurn()` adds `1` | Updated turn | Implemented |
 | City state + tile distance | Influence generation rule | Tile influence values | Planned |
 | Tiles owned by city id | Count controlled tiles | City size | Planned |
@@ -76,7 +72,7 @@ These reusable rules came from the older relationship-map template and remain us
 - UI surfaces explain or trigger relationships; they do not own simulation formulas.
 - Add a variable only when its source, consumer, and update timing are understood.
 
-## Tile Ownership
+## Planned Influence Ownership
 
 ```mermaid
 flowchart LR
@@ -86,22 +82,13 @@ flowchart LR
   D --> E[Tile owner]
 ```
 
-Current ownership invariants:
-
-- Influence is stored on the tile.
-- Ownership is derived from influence.
-- A tile with no positive influence has no owner.
-- The current code does not maintain a separate city-owned tile list.
-- Tie behavior remains unresolved.
-- The planned model replaces city-name identity with stable city ids.
-
-Planned ownership decisions:
+Current and planned ownership decisions:
 
 - each city stores a stable id
-- tile `owner` references a stable city id or `null`
-- `influenceByCity` is keyed by stable city id
+- tile `ownerCityId` currently references a stable city id or `null`
 - controlled tiles are derived from tile ownership rather than stored on the city
 - the starter tile begins owned by the starter city so every created city has at least one tile
+- influence-based ownership and tie behavior remain unresolved
 
 ## Planned City Aggregation
 
@@ -132,19 +119,37 @@ Derived city totals include:
 - `population`: sum of controlled tiles' `localPopulation`
 - territorial totals: sums of each controlled tile attribute
 
-## Minimum Planned Simulation Slice
+## Implemented First Slice
 
-The first implementation should prove the agreed model without designing the full economy:
+The first slice proves direct city ownership and aggregation with one territorial attribute:
 
-1. Create a starter city with a stable id and one owned starter tile.
-2. Store `arableLand`, `mountainArea`, `coastline`, and `localPopulation` on tiles.
-3. Derive city size, city population, and territorial totals from ownership.
-4. Add one city-wide hospital institution.
-5. Apply a small base population growth rate to every tile each turn.
-6. Apply the hospital's population-growth modifier to every tile owned by that city.
-7. Resolve ownership after population updates, so newly claimed tiles receive city-wide effects starting on the following turn.
+- one civilization, one city, and one owned starter tile
+- tile-level integer population and arable land
+- derived city size, population, and arable land
 
-The exact growth rate and hospital modifier are temporary tuning constants for proving the relationship. The richer birth, death, food, migration, infrastructure, and technology simulation remains intentionally unresolved.
+Population growth, institutions, influence, culture, and additional territorial attributes remain planned.
+
+## Next Planned Slices
+
+Keep these as future implementation targets, not current behavior:
+
+1. Population growth on tiles
+   Add local population change while keeping population as whole people.
+
+2. One city-wide institution
+   Add a minimal city-level modifier such as a hospital that affects all controlled tiles.
+
+3. Additional territorial attributes
+   Extend tiles beyond `arableLand` only when another attribute has a clear use in simulation or UI.
+
+4. Influence and control resolution
+   Add numeric tile influence, then resolve ownership from competing city and civilization presence.
+
+5. Culture and territorial expansion
+   Add culture accumulation and use it to expand projection range or unlock border growth.
+
+6. Territory refinement
+   Introduce `core territory` and `frontier territory` only when partial incorporation changes gameplay.
 
 ## Planned Influence Expansion
 

@@ -11,13 +11,12 @@ Tile Ideas is an early-design, single-player, turn-based civilization simulation
 The current implementation is intentionally small:
 
 - one game state containing cities, tiles, and a turn counter
-- one starter city and one starter tile
-- city growth through an explicit action
-- per-city influence values stored on tiles
-- tile ownership resolved from the highest influence
+- one starter civilization, city, and city-owned tile
+- tile-level population and arable land
+- city totals derived from controlled tiles
 - a React UI shell for inspecting and changing the demo state
 
-Population, territorial attributes, production, map generation, persistence, combat, diplomacy, and AI opponents are not implemented yet.
+Population growth, influence, additional territorial attributes, production, map generation, persistence, combat, diplomacy, and AI opponents are not implemented yet.
 
 ## Document Purpose
 
@@ -33,19 +32,15 @@ Do not use this file for full mechanic design or relationship flowcharts. Those 
 
 | Term | Current meaning |
 |---|---|
-| `GameState` | Top-level runtime state containing `turn`, `cities`, and `tiles`. |
+| `GameState` | Top-level runtime state containing `turn`, `civilizations`, `cities`, and `tiles`. |
 | `turn` | Integer tracking how many turns have been advanced. |
-| `Civilization` or `Civ` | Planned top-level political entity controlled by the player. A civilization can contain multiple cities. |
-| `City` | Main high-level game object. In planned design it is a named grouping of controlled tiles. |
-| `name` | Current city display name and temporary identity key. |
-| `size` | Currently a stored growth placeholder. In planned design, city size is the derived number of controlled tiles. |
-| `Tile` | A map cell containing identity, terrain, ownership, and influence values. In planned design it is also the main holder of territorial attributes and local population. |
+| `Civilization` or `Civ` | Top-level political entity controlled by the player. A civilization can contain multiple cities. |
+| `City` | Named grouping of controlled tiles belonging to a civilization. |
+| `name` | Display name. |
+| `size` | Derived number of tiles controlled by a city. |
+| `Tile` | Granular territorial unit containing ownership, local population, and territorial attributes. |
 | `id` | Stable tile identifier. |
-| `Terrain` | Current terrain union: `plains`, `forest`, `hill`, or `water`. |
-| `owner` | Name of the city currently controlling a tile, or `null`. |
-| `influenceByCity` | Record of city name to influence value for one tile. |
-| City influence | A city's control strength on a tile. |
-| Tile ownership | The result of comparing all city influence values on a tile. |
+| `ownerCityId` | Stable id of the city currently controlling a tile, or `null`. |
 | Territorial attributes | Planned tile-level values describing underlying land qualities such as arable land, habitation area, mountain area, coastline, and similar regional properties. |
 | Local population | Planned tile-level integer count of people using real-scale values rather than abstract population levels. |
 | City population | Planned derived sum of local population across tiles controlled by one city. |
@@ -54,12 +49,10 @@ Do not use this file for full mechanic design or relationship flowcharts. Those 
 
 ## Current Rules
 
-- `createGame()` creates turn `0`, one city, and one tile.
-- `growCity()` returns a new city with its size increased by the requested amount.
-- `setTileInfluence()` returns a new tile with one city's influence updated.
-- `resolveTileOwner()` assigns ownership to the city with the highest influence above `0`.
-- Equal influence values keep the first highest city encountered by the current object-key iteration order.
-- `advanceTurn()` increments the turn and resolves ownership for every tile.
+- `createGame()` creates turn `0`, one civilization, one city, and one city-owned tile.
+- `createTile()` requires local population to be a non-negative integer.
+- `getCityTotals()` derives city size, population, and arable land from controlled tiles.
+- `advanceTurn()` increments the turn.
 - `runTurns()` repeatedly applies `advanceTurn()`.
 
 ## Design Direction Terms
@@ -74,7 +67,7 @@ These are active planned concepts, not implemented rules:
 
 ## Naming Policy
 
-- Use `City`, `Tile`, `Terrain`, `GameState`, and `influenceByCity` consistently.
+- Use `Civilization`, `City`, `Tile`, `GameState`, and `ownerCityId` consistently.
 - Keep implemented terms separate from proposed mechanics.
 - Mark future concepts as planned until code exists.
 - Prefer `territorial attributes` over `resources` when referring to underlying land qualities.

@@ -13,23 +13,12 @@ import {
 import {
   advanceTurn,
   createGame,
-  growFirstCity,
   type GameState,
 } from "./game";
-import { setTileInfluence } from "./tile";
+import { getCityTotals } from "./city";
 
 function createStarterState(): GameState {
-  const state = createGame("Northhold");
-  const firstCity = state.cities[0];
-
-  if (!firstCity) {
-    return state;
-  }
-
-  return advanceTurn({
-    ...state,
-    tiles: state.tiles.map((tile) => setTileInfluence(tile, firstCity.name, 4)),
-  });
+  return createGame("Northhold");
 }
 
 export default function App() {
@@ -37,6 +26,9 @@ export default function App() {
 
   const city = gameState.cities[0];
   const tile = gameState.tiles[0];
+  const cityTotals = city
+    ? getCityTotals(city, gameState.tiles)
+    : { size: 0, population: 0, arableLand: 0 };
 
   return (
     <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
@@ -55,12 +47,6 @@ export default function App() {
           <div className="mt-6 flex flex-wrap gap-3">
             <Button onClick={() => setGameState((current) => advanceTurn(current))}>
               Advance Turn
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setGameState((current) => growFirstCity(current))}
-            >
-              Grow City
             </Button>
             <Button variant="ghost" onClick={() => setGameState(createStarterState())}>
               Reset Demo
@@ -82,22 +68,20 @@ export default function App() {
           <Card className="border-white/10 bg-white/8">
             <CardHeader>
               <CardTitle>City Size</CardTitle>
-              <CardDescription>Population placeholder</CardDescription>
+              <CardDescription>Number of controlled tiles</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-semibold text-white">{city?.size ?? 0}</p>
+              <p className="text-3xl font-semibold text-white">{cityTotals.size}</p>
             </CardContent>
           </Card>
 
           <Card className="border-white/10 bg-white/8">
             <CardHeader>
-              <CardTitle>Tile Owner</CardTitle>
-              <CardDescription>Resolved from influence</CardDescription>
+              <CardTitle>City Population</CardTitle>
+              <CardDescription>Sum of controlled tiles</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-semibold text-white">
-                {tile?.owner ?? "Unclaimed"}
-              </p>
+              <p className="text-3xl font-semibold text-white">{cityTotals.population}</p>
             </CardContent>
           </Card>
         </section>
@@ -118,8 +102,8 @@ export default function App() {
                 {city?.name ?? "No city"}
               </p>
               <p className="mt-1 text-sm text-slate-300">
-                Size {city?.size ?? 0} with one seeded tile influence for demo
-                purposes.
+                Controls {cityTotals.size} tile with {cityTotals.arableLand} arable
+                land.
               </p>
             </div>
             <div className="rounded-2xl border border-white/8 bg-white/5 p-4">
@@ -130,8 +114,8 @@ export default function App() {
                 {tile?.id ?? "No tile"}
               </p>
               <p className="mt-1 text-sm text-slate-300">
-                Terrain {tile?.terrain ?? "unknown"} with influence{" "}
-                {city ? tile?.influenceByCity[city.name] ?? 0 : 0}.
+                Population {tile?.localPopulation ?? 0}; owned by{" "}
+                {tile?.ownerCityId ?? "no city"}.
               </p>
             </div>
           </CardContent>

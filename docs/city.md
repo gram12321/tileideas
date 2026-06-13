@@ -12,20 +12,20 @@ Defined in `src/city.ts`:
 
 | Field | Type | Role |
 |---|---|---|
-| `name` | `string` | Display name and temporary identity key. |
-| `size` | `number` | Current manually changed growth value. This meaning is temporary and conflicts with the planned model. |
+| `id` | `string` | Stable city identity used by tile ownership. |
+| `civilizationId` | `string` | Stable identity of the civilization containing the city. |
+| `name` | `string` | Display name. |
 
 Current functions:
 
-- `createCity(name, size)` creates a city.
-- `growCity(city, amount)` returns a new city with increased size.
+- `createCity(id, civilizationId, name)` creates a city.
+- `getCityTotals(city, tiles)` derives size, population, and arable land.
 
 ## Current Constraints
 
-- City names are currently used as keys in tile influence maps.
-- Cities do not currently store controlled tile ids.
-- City size is currently stored and manually changed rather than derived from controlled territory.
-- Growth accepts any numeric amount; limits and validation are not defined yet.
+- Cities do not store controlled tile ids.
+- Only arable land is implemented as a territorial attribute.
+- Population growth and influence are not implemented.
 
 ## Planned Responsibilities
 

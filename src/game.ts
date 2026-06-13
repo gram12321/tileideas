@@ -1,36 +1,33 @@
-import { createCity, growCity, type City } from "./city";
-import { createTile, resolveTileOwner, type Tile } from "./tile";
+import { createCity, type City } from "./city";
+import { createTile, type Tile } from "./tile";
+
+export interface Civilization {
+  id: string;
+  name: string;
+}
 
 export interface GameState {
   turn: number;
+  civilizations: Civilization[];
   cities: City[];
   tiles: Tile[];
 }
 
 export function createGame(cityName = "Capital"): GameState {
+  const city = createCity("city-0", "civ-0", cityName);
+
   return {
     turn: 0,
-    cities: [createCity(cityName)],
-    tiles: [createTile("tile-0")],
+    civilizations: [{ id: "civ-0", name: "Player Civilization" }],
+    cities: [city],
+    tiles: [createTile("tile-0", city.id, 50, 10)],
   };
 }
 
 export function advanceTurn(state: GameState): GameState {
   return {
-    turn: state.turn + 1,
-    cities: [...state.cities],
-    tiles: state.tiles.map(resolveTileOwner),
-  };
-}
-
-export function growFirstCity(state: GameState, amount = 1): GameState {
-  if (state.cities.length === 0) {
-    return state;
-  }
-
-  return {
     ...state,
-    cities: [growCity(state.cities[0], amount), ...state.cities.slice(1)],
+    turn: state.turn + 1,
   };
 }
 

@@ -7,10 +7,9 @@ The current design direction is not a Civ-style "work one tile per population" m
 ## Current Prototype
 
 - React, Vite, TypeScript, Tailwind CSS, and shadcn UI
-- one starter city and one starter tile
-- city growth
-- per-city tile influence
-- tile ownership resolved from highest influence
+- one starter civilization, city, and city-owned tile
+- tile-level population and arable land
+- city size, population, and arable land derived from controlled tiles
 - manual turn advancement
 - minimal UI shell for inspecting and changing demo state
 

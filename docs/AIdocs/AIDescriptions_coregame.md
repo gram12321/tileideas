@@ -17,19 +17,19 @@ This file explains the current architecture and how to extend it without treatin
 
 | Area | Path | Responsibility |
 |---|---|---|
-| Game state | `src/game.ts` | Create game, advance turns, grow the first city, run repeated turns. |
-| City domain | `src/city.ts` | City type, creation, and growth. |
-| Tile domain | `src/tile.ts` | Terrain, tile creation, influence updates, ownership resolution. |
+| Game state | `src/game.ts` | Create game with one civilization, city, and owned tile; advance and run turns. |
+| City domain | `src/city.ts` | City identity, creation, and derived territory totals. |
+| Tile domain | `src/tile.ts` | Tile ownership, local population, arable land, and creation validation. |
 | Domain exports | `src/index.ts` | Public exports for current domain modules. |
 | UI shell | `src/App.tsx` | Create demo state, display values, trigger domain actions. |
 | UI primitives | `src/components/ui/` | Reusable button and card components. |
 
 ## Current Turn Flow
 
-1. `createGame()` creates one city and one tile.
-2. The UI demo helper seeds influence and advances once to resolve ownership.
-3. Player actions can advance a turn, grow the first city, or reset the demo.
-4. `advanceTurn()` increments `turn` and resolves ownership for each tile.
+1. `createGame()` creates one civilization, one city, and one city-owned tile.
+2. The UI derives city size, population, and arable land from the tile.
+3. Player actions can advance a turn or reset the demo.
+4. `advanceTurn()` increments `turn`.
 
 See `docs/variablesoverview.md` for dependency diagrams and planned flow.
 
