@@ -47,6 +47,21 @@ Do not use this file for full mechanic design or relationship flowcharts. Those 
 | Territorial potential | The summed capacity a city gains from controlled tiles before city systems convert it into realized outputs. |
 | City-wide improvements or institutions | Planned city-level systems such as hospitals, libraries, or other structures that modify all tiles belonging to that city. |
 
+## Territory And Influence Terms
+
+These terms should stay separate:
+
+| Term | Intended meaning |
+|---|---|
+| `influence` | The numeric share a city or civilization has on a specific tile. |
+| `territory` | Tiles currently controlled. |
+| `core territory` | Fully incorporated controlled tiles. |
+| `frontier territory` | Controlled tiles that are not yet fully incorporated. |
+| `projection range` | The area from which a city can naturally spread influence outward. |
+| `culture` | The accumulated value that expands projection range or unlocks territorial growth. |
+
+These are design terms, not implemented systems.
+
 ## Current Rules
 
 - `createGame()` creates turn `0`, one civilization, one city, and one city-owned tile.
@@ -64,6 +79,7 @@ These are active planned concepts, not implemented rules:
 - city size is the derived count of controlled tiles
 - city population is aggregated from controlled tiles
 - city-wide improvements modify the conditions across controlled tiles
+- influence is the numeric share on a tile, while territory is controlled land
 
 ## Naming Policy
 

@@ -151,6 +151,18 @@ Keep these as future implementation targets, not current behavior:
 6. Territory refinement
    Introduce `core territory` and `frontier territory` only when partial incorporation changes gameplay.
 
+7. UI inspection surfaces
+   Add a city screen and a tile inspection flow that can handle more than one tile without requiring a 2D map renderer yet.
+
+The intended first UI direction is:
+
+- a city detail surface that shows derived totals from controlled tiles
+- placeholders for future city-wide systems such as improvements or institutions
+- a tile list or tile selector that can handle multiple tiles
+- a tile detail surface that shows all current territorial attributes for the selected tile
+
+This should stay separate from map rendering. The first UI only needs to support inspecting many tiles, not drawing a full spatial grid.
+
 ## Planned Influence Expansion
 
 This diagram describes the intended direction, not current implementation:

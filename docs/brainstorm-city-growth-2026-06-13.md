@@ -13,126 +13,23 @@ This note captures ideas discussed during brainstorming. It should stay flexible
 
 - The game is a single-player, turn-based civilization simulation.
 - Cities are expected to grow over time.
-- Food is the most likely main input into population growth.
 - We are still open to alternative structures if they produce better gameplay.
 
-## Ideas Raised So Far
+## Superseded Early Growth Ideas
 
-### 1. Food accumulation drives population growth
+These early ideas were useful for opening the design space, but they no longer match the current territorial-population model closely enough to guide implementation:
 
-Basic shape:
+- food-bar population growth
+- city-level threshold population growth
+- birth-rate as the primary city growth mechanic
+- first-slice plans built around hospital-driven population growth
 
-- A city gathers food each turn.
-- Food fills a growth requirement.
-- When the requirement is reached, population increases and the food meter resets or partially resets.
-- Each next population level costs more food than the previous one.
+The current direction is:
 
-Example sequence discussed:
-
-- growth 1 -> `100` food
-- growth 2 -> `200` food
-- growth 3 -> `350` food
-
-Open design question:
-
-- Should this curve be linear, stepped, exponential, or another custom progression?
-
-### 2. Birth-rate style growth
-
-Alternative shape:
-
-- Population growth is not mainly about filling a food bar.
-- Instead, the city has a birth-rate or growth-rate value.
-- Food may modify that rate rather than directly convert into population.
-
-Possible effect:
-
-- Food-rich cities grow steadily even if they do not cross large discrete thresholds quickly.
-- This may feel more organic, but it can be harder to read and balance.
-
-### 3. Population maintenance cost
-
-Possible rule:
-
-- Existing population consumes food every turn.
-- Surplus food supports growth.
-- Low or negative surplus slows growth, halts growth, or causes decline.
-
-This is common in civilization games because it creates a meaningful trade-off between:
-
-- supporting a large city
-- expanding population further
-- allocating tiles or resources toward other outputs
-
-## Candidate Structures To Evaluate
-
-### A. Threshold growth with maintenance
-
-- Food produced each turn
-- minus food consumed by current population
-- surplus goes into a growth meter
-- growth meter reaching threshold adds `+1 population`
-- next threshold becomes larger
-
-Strengths:
-
-- easy to understand
-- familiar strategy-game pacing
-- creates strong food trade-offs
-
-Risks:
-
-- can feel gamey if thresholds are too abrupt
-- tuning the curve matters a lot
-
-### B. Pure rate-based growth
-
-- Food and other modifiers affect a growth rate
-- population increases gradually from that rate
-- maintenance may still exist, but growth is less tied to a fill-and-reset bar
-
-Strengths:
-
-- more organic feeling
-- easier to represent slow continuous differences between cities
-
-Risks:
-
-- less legible
-- harder for players to predict exact growth timing
-
-### C. Hybrid model
-
-- Population has food maintenance
-- surplus food contributes to a growth rate or growth progress bar
-- city traits, buildings, happiness, health, or policy can later modify the rate
-
-Strengths:
-
-- keeps the clarity of food surplus
-- leaves room for richer systems later
-
-Risks:
-
-- slightly more complex than we may need this early
-
-## Current Lean
-
-Tentative lean: a hybrid close to "threshold growth with maintenance."
-
-Reason:
-
-- It gives food a concrete strategic role.
-- It is easy to explain to players.
-- It leaves space for later modifiers like health, housing, happiness, or city specialization.
-- It fits turn-based city simulation well at an early stage.
-
-## Open Questions
-
-1. How should integer population growth be rounded or accumulated when growth formulas produce sub-person results?
-2. Should food be stored between turns, or should only per-turn surplus matter?
-3. What happens on food shortage: stalled growth only, population decline, or unrest before decline?
-4. Should early growth be fast to encourage expansion, or deliberately slow to make the first few citizens meaningful?
+- population exists on tiles first
+- city population is aggregated from tiles
+- city membership and later city-wide systems modify tile conditions
+- food may still matter later, but it is no longer the primary framing for the current minimum implementation path
 
 ## Tile Contribution Direction
 
@@ -672,38 +569,34 @@ So the practical design advice is:
 
 For example, an early version could use only:
 
-- base local growth tendency
-- fertility support
-- city membership bonus
+- local population stored on tiles
+- direct city ownership of tiles
+- derived city totals from controlled tiles
 
-and leave trade, migration, sanitation, and industrial effects for later layers.
+and leave growth drivers, migration, sanitation, and industrial effects for later layers.
 
-## New Open Questions
+## Still Useful Open Questions
 
 1. Should all controlled tiles contribute fully right away, or should some city capacity limit how much territory is effectively used?
 2. Do we want one city center only, or can the city later develop internal districts that change how nearby tiles contribute?
-3. Should food come directly from fertile territory, or from fertile territory filtered through population/infrastructure?
-4. How many base tile attributes are enough to make tiles interesting without making the map unreadable?
+3. How many base tile attributes are enough to make tiles interesting without making the map unreadable?
 
-## Minimum Slice Agreement
+## Implemented First Slice Agreement
 
-Agreed direction before implementing the first thin simulation slice:
+Agreed direction that has now been implemented:
 
-- Cities receive stable ids; tile ownership and influence reference those ids rather than city names.
+- Cities receive stable ids.
+- A civilization layer exists above cities.
 - Controlled tiles are derived from tile ownership rather than stored on the city.
 - A newly created starter city begins with one owned starter tile.
 - City `size` means the number of tiles controlled by the city.
 - City population is separate from city size and equals the sum of local population across controlled tiles.
-- Population uses real-scale numbers of people rather than abstract levels such as `1`, `2`, or `3`.
-- Early tiles may contain around `10` to `100` people; developed tiles may eventually contain `100,000` or more.
-- The first territorial attribute schema should contain only `arableLand`, `mountainArea`, and `coastline`.
-- The first slice should include one city-wide hospital institution to prove that city systems can modify every controlled tile.
-- The first population-growth rule is intentionally temporary and exists only to prove local growth plus city-wide modifiers.
-- Population updates happen before ownership resolution, so a newly claimed tile begins receiving city-wide effects on the following turn.
+- Population uses real-scale whole numbers of people rather than abstract levels such as `1`, `2`, or `3`.
+- The first territorial attribute schema is intentionally tiny and currently implements only `arableLand`.
 
 Still unresolved:
 
-- exact population rounding and display behavior
+- population growth rules
 - final units for territorial attributes
 - the full birth, death, food, migration, infrastructure, economy, and technology simulation
 
@@ -817,15 +710,6 @@ This is a coherent rule, but it is important to notice what it means:
 
 That is a real design choice, not just an implementation detail.
 
-## What I Think Needs Settling Before The First Slice
-
-These feel important enough to settle before we write the first implementation:
-
-1. Do tiles conceptually have both a controlling civilization and a controlling city?
-2. Do we want the first slice to model only `city territory`, with `core territory` and `frontier territory` deferred?
-3. Do we want `projection range` to exist in the first slice, or only as a planned later mechanic?
-4. Does culture accumulation expand projection range, city territory, or both?
-
 ## Current Lean
 
 My current lean is:
@@ -835,9 +719,9 @@ My current lean is:
 - yes to using `territory` for controlled tiles instead of `reach`
 - yes to `core territory` as a later refinement, not a first-slice requirement
 - yes to culture accumulation as the long-term border-growth system
-- no to implementing full multi-source cultural spread in the first slice
+- no to implementing full multi-source cultural spread in the current first slice
 
-For the first slice, I would keep:
+For the current implementation path, keep:
 
 - one civilization
 - one city
@@ -845,4 +729,4 @@ For the first slice, I would keep:
 - no projection range yet
 - no partial incorporation yet
 
-But I would choose terminology and data shapes now so we do not paint ourselves into a corner.
+and choose terminology and data shapes now so we do not paint ourselves into a corner.
